@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
 namespace WebCrawler
@@ -24,7 +24,7 @@ namespace WebCrawler
             {
                 int expressionsCount = 0;
                 string content;
-                List<Thread> threads = new List<Thread>();
+                List<Task> tasks = new List<Task>();
 
                 //Console.WriteLine("NEW WEBSITE: {0}", pUrl);
         
@@ -57,18 +57,13 @@ namespace WebCrawler
                 {
                     var link = "http://www.games-academy.de/" + match.Groups[2].Value;
                     //Console.WriteLine("LINK: {0}", link);
-                    Thread thread = new System.Threading.Thread(() =>
+                    Task task = Task.Run(() =>
                         {
                             FindExpressions(link, pSearchedExpression, pSearchDepth - 1);
                         });
-                    threads.Add(thread);
-                    thread.Start();
+                    tasks.Add(task);
                 }
-
-                foreach (var thread in threads)
-                {
-                    thread.Join();
-                }
+                Task.WaitAll(tasks.ToArray());
 
                 
             }
