@@ -9,18 +9,10 @@ namespace WebCrawler
     class WebCrawler
     {
         static HashSet<string> mReadLinks = new HashSet<string>();
-        static object mutex = new object();
 
-        public void FindExpressions(string pUrl, string pSearchedExpression, int pSearchDepth)
+        public async Task FindExpressions(string pUrl, string pSearchedExpression, int pSearchDepth)
         {
-            bool containsUrl;
-
-            lock (mutex)
-            {
-                containsUrl = mReadLinks.Contains(pUrl);
-            }
-
-            if (pSearchDepth > 0 && !containsUrl)
+            if (pSearchDepth > 0 && !mReadLinks.Contains(pUrl))
             {
                 int expressionsCount = 0;
                 string content;
@@ -28,15 +20,13 @@ namespace WebCrawler
 
                 //Console.WriteLine("NEW WEBSITE: {0}", pUrl);
         
-                lock (mutex)
-                {
-                    mReadLinks.Add(pUrl);
-                }
+                mReadLinks.Add(pUrl);
+
                 try
                 {
                     using (var wc = new System.Net.WebClient())
                     {
-                        content = wc.DownloadString(pUrl);
+                        content = await wc.DownloadStringTaskAsync(pUrl);
                     }
                 }
                 catch (System.Net.WebException e) 
@@ -57,15 +47,10 @@ namespace WebCrawler
                 {
                     var link = "http://www.games-academy.de/" + match.Groups[2].Value;
                     //Console.WriteLine("LINK: {0}", link);
-                    Task task = Task.Run(() =>
-                        {
-                            FindExpressions(link, pSearchedExpression, pSearchDepth - 1);
-                        });
+                    Task task = FindExpressions(link, pSearchedExpression, pSearchDepth - 1);
                     tasks.Add(task);
                 }
-                Task.WaitAll(tasks.ToArray());
-
-                
+                await Task.WhenAll(tasks.ToArray());
             }
             
         }

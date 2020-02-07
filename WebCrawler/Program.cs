@@ -7,8 +7,7 @@ namespace WebCrawler
         static void Main(string[] args)
         {
             WebCrawler webCrawler = new WebCrawler();
-
-            webCrawler.FindExpressions("http://www.games-academy.de/", "Game", 10);
+            webCrawler.FindExpressions("http://www.games-academy.de/", "Game", 10).Wait();
         }
     }
 }
